@@ -1,0 +1,8 @@
+{
+  "name": "rakurs-experiment-01",
+  "version": "0.1.0",
+  "private": true,
+  "description": "Local-first laboratory journal for a pilot multi-view measurement experiment",
+  "scripts": {"start": "node tools/serve.cjs", "test": "node --test tests/core.test.cjs"},
+  "engines": {"node": ">=22"}
+}
