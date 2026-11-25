@@ -17,7 +17,7 @@
  function updateGuide(){
   const text=guideText[pane]||guideText.session,step=guideSteps[pane]||1;
   $('guide-stage').textContent='ШАГ '+step+' ИЗ 4';$('guide-title').textContent=text[0];$('guide-text').textContent=text[1];$('guide-why-text').textContent=text[2];
-  $('.guide-progress i').forEach((el,i)=>el.classList.toggle('is-done',i<step));
+  $$('.guide-progress i').forEach((el,i)=>el.classList.toggle('is-done',i<step));
   $('guide-back').disabled=pane==='session';$('guide-next').textContent=pane==='export'?'К началу →':step===4?'К сохранению →':'Дальше →';
  }
  function guideMove(delta){
@@ -37,7 +37,7 @@
  function changeAttempt(fn){const sid=sessionId,idx=frameIndex,aid=attempt()?.id;if(!aid)return Promise.resolve();return mutate(p=>{const a=p.sessions.find(s=>s.id===sid).frames[idx].attempts.find(a=>a.id===aid);fn(a);});}
  async function refreshProjects(){projects=await S.list();$('project-select').innerHTML=projects.map(p=>`<option value="${E(p.id)}">${E(p.name)}</option>`).join('');$('project-select').value=project.id;}
  async function selectProject(p){await queue;project=p;sessionId=p.sessions[0].id;frameIndex=0;editorKey=null;try{localStorage.setItem('rakurs-active-project',p.id);}catch(_){}await refreshProjects();render();}
- function go(name){if(!pages[name])return;pane=name;$('.pane').forEach(e=>e.hidden=e.id!=='pane-'+name);$('[data-pane]').forEach(e=>e.setAttribute('aria-current',e.dataset.pane===name?'page':'false'));$('page-title').textContent=pages[name][0];$('page-description').textContent=pages[name][1];updateGuide();render();window.scrollTo(0,0);}
+ function go(name){if(!pages[name])return;pane=name;$$('.pane').forEach(e=>e.hidden=e.id!=='pane-'+name);$$('[data-pane]').forEach(e=>e.setAttribute('aria-current',e.dataset.pane===name?'page':'false'));$('page-title').textContent=pages[name][0];$('page-description').textContent=pages[name][1];updateGuide();render();window.scrollTo(0,0);}
  function value(el,v){if(el.type==='checkbox')el.checked=!!v;else el.value=v??'';}
  function readPath(o,path){return path.split('.').reduce((v,k)=>v?.[k],o);}
  function setPath(o,path,v){const parts=path.split('.'),last=parts.pop();parts.reduce((v,k)=>v[k],o)[last]=v;}
@@ -46,7 +46,7 @@
   $('stat-filled').innerHTML=total.reduce((a,x)=>a+x.filled,0)+` <small>/ ${24*total.length}</small>`;$('stat-accepted').textContent=total.reduce((a,x)=>a+x.accepted,0);$('stat-annotated').textContent=total.reduce((a,x)=>a+x.annotated,0);$('nav-photo-count').textContent=c.filled+'/24';
   $('session-cards').innerHTML=project.sessions.map(x=>{const z=C.counts(x);return `<button class="session-card ${x.id===s.id?'selected':''}" data-session="${E(x.id)}"><span class="code">${x.code}</span><span class="condition">${x.newSetup?'Новая установка':'Установка не подтверждена'}</span><h3>${E(x.objectId||'Предмет пока не указан')}</h3><small>${z.filled} / 24 кадров · ${z.annotated} размечено</small><span class="mini-progress"><span style="width:${z.filled/24*100}%"></span></span></button>`;}).join('');
   $('old-project-count').textContent=projects.length;const oldList=[...projects].sort((x,y)=>(y.updatedAt||y.createdAt||'').localeCompare(x.updatedAt||x.createdAt||''));$('old-project-list').innerHTML=oldList.length?oldList.map(p=>{const active=p.id===project.id,n=p.sessions.reduce((sum,x)=>sum+C.counts(x).filled,0);return `<div class="old-project-row"><div><strong>${E(p.name)}</strong><small>${p.sessions.length} сесс. · ${n} фото${active?' · открыт':''}</small></div><button type="button" data-open-project="${E(p.id)}" ${active?'disabled':''}>${active?'Открыт':'Открыть →'}</button></div>`;}).join(''):'<p class="old-empty">Пока нет сохранённых проектов.</p>';
-  $('[data-s]').forEach(el=>value(el,s[el.dataset.s]));$$('[data-r]').forEach(el=>value(el,readPath(s.reference,el.dataset.r)));$('instrument-relationship').value=s.reference.relationship;
+  $$('[data-s]').forEach(el=>value(el,s[el.dataset.s]));$$('[data-r]').forEach(el=>value(el,readPath(s.reference,el.dataset.r)));$('instrument-relationship').value=s.reference.relationship;
   for(const k of ['scale','control']){const r=C.referenceStats(s.reference[k]);$(k+'-stats').classList.toggle('incomplete',!r.complete);$(k+'-stats').innerHTML=`<span>Среднее <strong>${R.n(r.mean)} мм</strong></span><span>s <strong>${R.n(r.sd)} мм</strong></span><span>uA <strong>${R.n(r.standardA)} мм</strong></span><span>u <strong>${r.complete?R.n(r.u)+' мм':'бюджет неполный'}</strong></span>`;}
   $$('[data-setting]').forEach(el=>value(el,s.analysisSettings[el.dataset.setting]));$('reconstruction-status').textContent=s.reconstruction?'Модель загружена':'Нет модели';$('export-summary').innerHTML=`<span>Сессий <strong>${total.length}</strong></span><span>Всего попыток <strong>${total.reduce((a,x)=>a+x.attempts,0)}</strong></span><span>Отклонённых <strong>${total.reduce((a,x)=>a+x.failures,0)}</strong></span>`;
   if(pane==='photos')renderGallery();if(pane==='annotation')renderAnnotation();
