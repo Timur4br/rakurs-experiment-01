@@ -5,6 +5,25 @@
  const session=()=>project.sessions.find(s=>s.id===sessionId)||project.sessions[0],frame=()=>session().frames[frameIndex],attempt=()=>C.active(frame());
  const editor=new LabEditor.PhotoEditor($('photo-canvas'),p=>mark(p));
  const pages={session:['Сессии и установка','Один предмет, отдельный масштабный образец и две повторные сессии по 24 кадра.'],references:['Опорные измерения','Запишите исходные показания и обоснование их неопределённости.'],photos:['План съёмки · 24 кадра','Две высоты и три направления в каждой группе. Предмет и масштаб неподвижны.'],annotation:['Разметка четырёх точек','Одни и те же физические концы отрезков на всех кадрах.'],analysis:['Расчёт и сравнение','Восстановление четырёх точек в 3D и проверка стратегий на готовом пуле.'],export:['Отчёт и архив','Сохраните материалы опыта и резервную копию вне браузера.']};
+ const guideSteps={session:1,references:1,photos:2,annotation:3,analysis:4,export:4};
+ const guideText={
+  session:['Подготовь сцену','Поставь предмет и масштаб. Во время серии двигай только телефон.','Если предмет или масштаб сдвинуть, кадры перестанут описывать одну и ту же установку — результат может исказиться.'],
+  references:['Измерь масштаб','Сделай пять повторных измерений и запиши прибор с его делением. Если штангенциркуль не поверен, считай результат пилотным.','Повторные измерения показывают разброс, а поверка помогает оценить возможное смещение прибора. Контрольную длину не используй для настройки масштаба.'],
+  photos:['Сними 24 кадра','Следуй плану: меняй положение телефона вокруг сцены и снимай с двух высот. Загрузи оригиналы фотографий.','Разные ракурсы помогают восстановить глубину. Предмет и масштаб оставь на месте во всей серии.'],
+  annotation:['Отметь те же точки','На каждом снимке укажи концы отрезков O1–O2 и R1–R2. Неотмеченные точки на фото не появляются. Если точка закрыта, отметь её как невидимую.','Программа связывает отметки между кадрами. Если выбирать разные физические концы, длины сравнивать нельзя. Маркер появится только после щелчка по фото.'],
+  analysis:['Посмотри результат','Загрузи камеры из COLMAP и выполни расчёт. Сравнение ракурсов оценивает только уже снятый набор кадров.','Это пилот: сравнение стратегий на одном наборе показывает различия в этом наборе, но ещё не доказывает, что одна стратегия лучше вообще.'],
+  export:['Сохрани копию','Скачай ZIP и отчёт, чтобы сохранить исходные фото и записи отдельно от браузера.','Данные сайта хранятся на этом устройстве. ZIP поможет перенести эксперимент и продолжить работу.']
+ };
+ function updateGuide(){
+  const text=guideText[pane]||guideText.session,step=guideSteps[pane]||1;
+  $('guide-stage').textContent='ШАГ '+step+' ИЗ 4';$('guide-title').textContent=text[0];$('guide-text').textContent=text[1];$('guide-why-text').textContent=text[2];
+  $('.guide-progress i').forEach((el,i)=>el.classList.toggle('is-done',i<step));
+  $('guide-back').disabled=pane==='session';$('guide-next').textContent=pane==='export'?'К началу →':step===4?'К сохранению →':'Дальше →';
+ }
+ function guideMove(delta){
+  const order=['session','references','photos','annotation','analysis','export'],i=order.indexOf(pane);
+  go(order[Math.max(0,Math.min(order.length-1,i+delta))]);
+ }
  function toast(t){$('toast').textContent=t;$('toast').hidden=false;clearTimeout(toast.timer);toast.timer=setTimeout(()=>$('toast').hidden=true,4500);}
  function error(e){console.error(e);$('error-banner').textContent=e.message||String(e);$('error-banner').hidden=false;$('save-state').textContent='Проверьте сообщение';}
  function clearError(){$('error-banner').hidden=true;}
@@ -17,7 +36,7 @@
  function changeAttempt(fn){const sid=sessionId,idx=frameIndex,aid=attempt()?.id;if(!aid)return Promise.resolve();return mutate(p=>{const a=p.sessions.find(s=>s.id===sid).frames[idx].attempts.find(a=>a.id===aid);fn(a);});}
  async function refreshProjects(){projects=await S.list();$('project-select').innerHTML=projects.map(p=>`<option value="${E(p.id)}">${E(p.name)}</option>`).join('');$('project-select').value=project.id;}
  async function selectProject(p){await queue;project=p;sessionId=p.sessions[0].id;frameIndex=0;editorKey=null;try{localStorage.setItem('rakurs-active-project',p.id);}catch(_){}await refreshProjects();render();}
- function go(name){if(!pages[name])return;pane=name;$$('.pane').forEach(e=>e.hidden=e.id!=='pane-'+name);$$('[data-pane]').forEach(e=>e.setAttribute('aria-current',e.dataset.pane===name?'page':'false'));$('page-title').textContent=pages[name][0];$('page-description').textContent=pages[name][1];render();window.scrollTo(0,0);}
+ function go(name){if(!pages[name])return;pane=name;$('.pane').forEach(e=>e.hidden=e.id!=='pane-'+name);$('[data-pane]').forEach(e=>e.setAttribute('aria-current',e.dataset.pane===name?'page':'false'));$('page-title').textContent=pages[name][0];$('page-description').textContent=pages[name][1];updateGuide();render();window.scrollTo(0,0);}
  function value(el,v){if(el.type==='checkbox')el.checked=!!v;else el.value=v??'';}
  function readPath(o,path){return path.split('.').reduce((v,k)=>v?.[k],o);}
  function setPath(o,path,v){const parts=path.split('.'),last=parts.pop();parts.reduce((v,k)=>v[k],o)[last]=v;}
@@ -43,7 +62,7 @@
  function visibility(k,v){const a=attempt();if(!a)return;if(v==='visible'&&!a.points[k]){point=k;toast('Поставьте точку на фотографии.');renderAnnotation();return;}changeAttempt(a=>{const before={points:C.clone(a.points),visibility:C.clone(a.visibility)};a.visibility[k]=v;if(v!=='visible')a.points[k]=null;a.revisions.push({type:'annotation',time:new Date().toISOString(),before,after:{points:C.clone(a.points),visibility:C.clone(a.visibility)},undone:false});}).catch(()=>{});}
  async function upload(files,context){files=Array.from(files);if(!files.length)return;await task('Сохраняем фотографии',async()=>{const pid=project.id,sid=context?.sid||sessionId,s=project.sessions.find(x=>x.id===sid),items=Array.from(files);const slots=context?[context.idx]:s.frames.map((f,i)=>!C.active(f)?i:null).filter(i=>i!==null);if(items.length>slots.length)throw new Error(`Выбрано ${items.length} снимков, свободных позиций ${slots.length}. Добавляйте оставшиеся кадры как новые попытки.`);for(let i=0;i<items.length;i++){progress(i,items.length,items[i].name);const idx=slots[i],prepared=await F.preparePhoto(items[i],pid,idx+1,context?.reason||'');await mutate(p=>{const f=p.sessions.find(x=>x.id===sid).frames[idx];f.attempts.push(prepared.record);f.activeId=prepared.record.id;},prepared.media);}toast('Оригиналы сохранены. Проверьте качество и разметьте точки.');});}
  async function exportAction(kind){await task('Готовим '+(kind==='backup'?'резервную копию':'рабочие изображения'),async()=>{const blob=kind==='backup'?await F.backup(project,progress):await F.workingArchive(session(),progress);F.download(blob,`${C.safeName(project.name)}_${kind==='backup'?'полный_архив':session().code+'_рабочие_PNG'}.zip`);toast('Архив готов. Сохраните его вне браузера.');});}
- document.addEventListener('click',e=>{const el=e.target.closest('button');if(!el)return;if(el.dataset.pane)go(el.dataset.pane);if(el.dataset.go)go(el.dataset.go);if(el.dataset.session){sessionId=el.dataset.session;frameIndex=0;render();}if(el.dataset.frame!==undefined){frameIndex=Number(el.dataset.frame);go('annotation');}if(el.dataset.point){point=el.dataset.point;renderAnnotation();}if(el.dataset.action)exportAction(el.dataset.action);});
+ document.addEventListener('click',e=>{const el=e.target.closest('button');if(!el)return;if(el.dataset.pane)go(el.dataset.pane);if(el.dataset.go)go(el.dataset.go);if(el.id==='guide-next')guideMove(1);if(el.id==='guide-back')guideMove(-1);if(el.dataset.session){sessionId=el.dataset.session;frameIndex=0;render();}if(el.dataset.frame!==undefined){frameIndex=Number(el.dataset.frame);go('annotation');}if(el.dataset.point){point=el.dataset.point;renderAnnotation();}if(el.dataset.action)exportAction(el.dataset.action);});
  $('session-select').onchange=e=>{sessionId=e.target.value;frameIndex=0;render();};$('project-select').onchange=e=>task('Открываем проект',async()=>selectProject(await S.getProject(e.target.value)));
  $('new-project').onclick=()=>$('name-dialog').showModal();$('cancel-name').onclick=()=>$('name-dialog').close();$('name-form').onsubmit=e=>{e.preventDefault();const name=$('new-name').value.trim();if(!name)return;$('name-dialog').close();task('Создаём проект',async()=>{const p=C.project(name);await S.save(p);await selectProject(p);go('session');});};
  $('add-session').onclick=()=>mutate(p=>{const number=Math.max(...p.sessions.map(x=>Number(x.code.slice(1))||0))+1;const s=C.session('S'+String(number).padStart(3,'0'));p.sessions.push(s);sessionId=s.id;frameIndex=0;}).catch(()=>{});
