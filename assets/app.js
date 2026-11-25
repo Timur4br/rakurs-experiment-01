@@ -21,6 +21,7 @@
   $('guide-back').disabled=pane==='session';$('guide-next').textContent=pane==='export'?'К началу →':step===4?'К сохранению →':'Дальше →';
  }
  function guideMove(delta){
+  if(pane==='export'&&delta>0){go('session');return;}
   const order=['session','references','photos','annotation','analysis','export'],i=order.indexOf(pane);
   go(order[Math.max(0,Math.min(order.length-1,i+delta))]);
  }
