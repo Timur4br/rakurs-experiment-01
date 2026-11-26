@@ -1,9 +1,0 @@
-<svg xmlns="http://www.w3.org/2000/svg" width="70mm" height="70mm" viewBox="0 0 700 700">
-<rect width="700" height="700" fill="#fff"/><rect x="50" y="50" width="600" height="600" fill="none" stroke="#111" stroke-width="5"/>
-<circle cx="50" cy="50" r="20" fill="#e53935" stroke="#111" stroke-width="3"/><text x="78" y="52" font-family="Arial" font-size="24" font-weight="bold">R1</text>
-<rect x="630" y="30" width="40" height="40" fill="#1976d2" stroke="#111" stroke-width="3"/><text x="580" y="100" font-family="Arial" font-size="24" font-weight="bold">R2</text>
-<path d="M650 625l24 42h-48z" fill="#2e9d63" stroke="#111" stroke-width="3"/><text x="580" y="600" font-family="Arial" font-size="24" font-weight="bold">R3</text>
-<path d="M50 625v50M25 650h50" stroke="#d69d16" stroke-width="10"/><circle cx="50" cy="650" r="25" fill="none" stroke="#111" stroke-width="3"/><text x="78" y="680" font-family="Arial" font-size="24" font-weight="bold">R4</text>
-<text x="350" y="340" text-anchor="middle" font-family="Arial" font-size="28" fill="#555">РАКУРС · 1:1</text>
-<text x="350" y="380" text-anchor="middle" font-family="Arial" font-size="22" fill="#555">R1 → R2 → R3 → R4</text>
-<text x="350" y="420" text-anchor="middle" font-family="Arial" font-size="18" fill="#777">Размер между центрами углов: 60 мм</text></svg>
